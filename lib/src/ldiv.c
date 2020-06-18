@@ -1,6 +1,7 @@
 #include "libultra_internal.h"
 #include <stdlib.h>
 
+#ifndef TARGET_MACOS // sad mac moment, poor little mac don't like this :(
 lldiv_t lldiv(long long num, long long denom) {
     lldiv_t ret;
 
@@ -13,6 +14,7 @@ lldiv_t lldiv(long long num, long long denom) {
 
     return ret;
 }
+#endif
 
 ldiv_t ldiv(long num, long denom) {
     ldiv_t ret;

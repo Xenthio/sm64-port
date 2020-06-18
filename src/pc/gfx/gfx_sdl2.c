@@ -14,8 +14,13 @@
 #else
 #include <SDL2/SDL.h>
 #define GL_GLEXT_PROTOTYPES 1
+
+#ifdef OSX_BUILD
+#include <SDL2/SDL_opengl.h>
+#else
 #include <SDL2/SDL_opengles2.h>
 #endif
+#endif 
 
 #include "gfx_window_manager_api.h"
 #include "gfx_screen_config.h"

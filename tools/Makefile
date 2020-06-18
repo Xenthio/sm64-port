@@ -1,6 +1,10 @@
+ifeq ($(UNAME),Darwin)
+	  TARGET_MACOS := -DTARGET_MACOS
+endif
+
 CC := gcc
 CXX := g++
-CFLAGS := -I . -Wall -Wextra -Wno-unused-parameter -pedantic -std=c99 -O2 -s
+CFLAGS := -I . -Wall -Wextra -Wno-unused-parameter $(TARGET_MACOS) -pedantic -std=c99 -O2 -s
 LDFLAGS := -lm
 PROGRAMS := n64graphics n64graphics_ci mio0 n64cksum textconv patch_libultra_math aifc_decode aiff_extract_codebook vadpcm_enc tabledesign extract_data_for_mio skyconv
 
@@ -12,6 +16,8 @@ endif
 ifeq ($(OS),Windows_NT)
 ARMIPS_FLAGS := -municode
 endif
+
+
 
 default: all
 
@@ -60,7 +66,7 @@ clean:
 
 define COMPILE
 $(1): $($1_SOURCES)
-	$(CC) $(CFLAGS) $($1_CFLAGS) $$^ -o $$@ $(LDFLAGS) $($1_LDFLAGS)
+	$(CC) $(CFLAGS) $($1_CFLAGS) $(TARGET_MACOS) $$^ -o $$@ $(LDFLAGS) $($1_LDFLAGS)
 endef
 
 $(foreach p,$(PROGRAMS),$(eval $(call COMPILE,$(p))))

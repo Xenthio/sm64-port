@@ -23,7 +23,9 @@ SOFTWARE.
 */
 
 #include "exoquant.h"
+#ifndef TARGET_MACOS // malloc.h stuff is inside stdlib.h on macOS
 #include <malloc.h>
+#endif
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>

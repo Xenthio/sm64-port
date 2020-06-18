@@ -33,6 +33,7 @@ static const du pilo = {
 static const fu zero = {0.0};
 extern const fu NAN;
 
+#ifndef TARGET_OSX // again sad mac moment blah blah mac don't use this.
 float cosf(float x)
 {
 	double dx;  // double x
@@ -92,3 +93,4 @@ float cosf(float x)
 
 	return zero.f;
 }
+#endif

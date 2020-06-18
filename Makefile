@@ -21,8 +21,7 @@ NON_MATCHING ?= 0
 TARGET_N64 ?= 0
 # Build for Emscripten/WebGL
 TARGET_WEB ?= 0
-# Compiler to use (ido or gcc)
-COMPILER ?= ido
+
 
 # Automatic settings only for ports
 ifeq ($(TARGET_N64),0)
@@ -33,8 +32,11 @@ ifeq ($(TARGET_N64),0)
   ifeq ($(TARGET_WEB),0)
     ifeq ($(OS),Windows_NT)
       TARGET_WINDOWS := 1
+    endif
+    ifeq ($(UNAME_S),Darwin)
+      TARGET_MACOS := 1
     else
-      # TODO: Detect Mac OS X, BSD, etc. For now, assume Linux
+      # TODO: Detect OS/2, BSD, etc. For now, assume Linux
       TARGET_LINUX := 1
     endif
   endif
@@ -176,7 +178,7 @@ endif
 endif
 
 # Make tools if out of date
-DUMMY != make -s -C tools >&2 || echo FAIL
+DUMMY != make -C tools >&2 || echo FAIL
 ifeq ($(DUMMY),FAIL)
   $(error Failed to build tools)
 endif
@@ -237,10 +239,6 @@ GODDARD_SRC_DIRS := src/goddard src/goddard/dynlists
 MIPSISET := -mips2
 MIPSBIT := -32
 
-ifeq ($(COMPILER),gcc)
-  MIPSISET := -mips3
-endif
-
 ifeq ($(TARGET_N64),1)
 
 ifeq ($(VERSION),eu)
@@ -253,10 +251,6 @@ else
 endif
 endif
 
-  # Use a default opt flag for gcc
-  ifeq ($(COMPILER),gcc)
-    OPT_FLAGS := -O2
-  endif
 
 else
 ifeq ($(TARGET_WEB),1)
@@ -430,15 +424,24 @@ ifneq ($(TARGET_WEB),1)
 else
   CC := emcc
 endif
+ifeq ($(TARGET_MACOS),1)
+  AS := i686-w64-mingw32-as
+endif
 ifeq ($(TARGET_WINDOWS),1)
   LD := $(CXX)
 else
   LD := $(CC)
 endif
-CPP := cpp -P
-OBJDUMP := objdump
-OBJCOPY := objcopy
-PYTHON := python3
+ifeq ($(OSX_BUILD),1)
+  CPP := cpp-9 -P
+  OBJDUMP := i686-w64-mingw32-objdump
+  OBJCOPY := i686-w64-mingw32-objcopy
+else
+  CPP := cpp -P
+  OBJDUMP := objdump
+  OBJCOPY := objcopy
+  PYTHON := python3
+endif
 
 # Platform-specific compiler and linker flags
 ifeq ($(TARGET_WINDOWS),1)
@@ -452,6 +455,10 @@ endif
 ifeq ($(TARGET_WEB),1)
   PLATFORM_CFLAGS  := -DTARGET_WEB
   PLATFORM_LDFLAGS := -lm -no-pie -s TOTAL_MEMORY=20MB -g4 --source-map-base http://localhost:8080/ -s "EXTRA_EXPORTED_RUNTIME_METHODS=['callMain']"
+endif
+ifeq ($(TARGET_MACOS),1)
+  PLATFORM_CFLAGS += -DTARGET_MACOS
+  PLATFORM_LDFLAGS := -lm -framework OpenGL `$(SDLCONFIG) --libs` -no-pie -lpthread `pkg-config --libs libusb-1.0 glfw3 glew`
 endif
 
 PLATFORM_CFLAGS += -DNO_SEGMENTED_MEMORY

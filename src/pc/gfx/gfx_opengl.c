@@ -22,7 +22,12 @@
 #else
 #include <SDL2/SDL.h>
 #define GL_GLEXT_PROTOTYPES 1
+
+#ifdef TARGET_MACOS
+#include <SDL2/SDL_opengl.h>
+#else
 #include <SDL2/SDL_opengles2.h>
+#endif
 #endif
 
 #include "gfx_cc.h"
@@ -175,7 +180,11 @@ static struct ShaderProgram *gfx_opengl_create_and_load_new_shader(uint32_t shad
     size_t num_floats = 4;
 
     // Vertex shader
-    append_line(vs_buf, &vs_len, "#version 110");
+	#ifdef TARGET_MACOS
+		append_line(vs_buf, &vs_len, "");
+	#else
+		append_line(vs_buf, &vs_len, "#version 110");
+	#endif
     append_line(vs_buf, &vs_len, "attribute vec4 aVtxPos;");
     if (cc_features.used_textures[0] || cc_features.used_textures[1]) {
         append_line(vs_buf, &vs_len, "attribute vec2 aTexCoord;");
@@ -206,8 +215,12 @@ static struct ShaderProgram *gfx_opengl_create_and_load_new_shader(uint32_t shad
     append_line(vs_buf, &vs_len, "}");
 
     // Fragment shader
-    append_line(fs_buf, &fs_len, "#version 110");
-    //append_line(fs_buf, &fs_len, "precision mediump float;");
+	#ifdef OSX_BUILD
+		append_line(fs_buf, &fs_len, "");
+	#else
+		append_line(fs_buf, &fs_len, "#version 110");
+		//append_line(fs_buf, &fs_len, "precision mediump float;");
+	#endif
     if (cc_features.used_textures[0] || cc_features.used_textures[1]) {
         append_line(fs_buf, &fs_len, "varying vec2 vTexCoord;");
     }
@@ -474,6 +487,10 @@ static void gfx_opengl_draw_triangles(float buf_vbo[], size_t buf_vbo_len, size_
 static void gfx_opengl_init(void) {
 #if FOR_WINDOWS
     glewInit();
+#endif
+	
+#ifdef TARGET_MACOS
+	glewInit();
 #endif
     
     glGenBuffers(1, &opengl_vbo);
